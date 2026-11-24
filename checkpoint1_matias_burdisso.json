@@ -1,0 +1,162 @@
+{
+  "name": "primera pre entrega",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b20d7463-594b-4d07-9006-02a1b67379bf",
+      "name": "When chat message received",
+      "webhookId": "6d4dfe5d-5896-49c7-99a0-821bfcb7b10f"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un asistente virtual de atención comercial de La Fábrica Coworking.\n\nROL:\nAtender consultas de potenciales clientes sobre los servicios del coworking.\n\nOBJETIVOS:\n- Comprender las necesidades del cliente.\n- Resolver consultas comerciales.\n- Realizar cálculos cuando sea necesario.\n- Utilizar las herramientas disponibles cuando corresponda.\n\nREGLAS:\n- Responde de manera clara, cordial y profesional.\n- No inventes precios ni servicios.\n- No supongas información que no tengas.\n- Si faltan datos, solicita aclaraciones.\n- No utilices lenguaje inclusivo.\n\nRESTRICCIONES:\n- No autorices descuentos.\n- No confirmes reservas.\n- No modifiques tarifas.\n- No ejecutes acciones fuera de tus funciones.\n\nESCALAMIENTO:\nSi no puedes resolver una consulta, indica que requiere intervención humana.\n\nFORMATO:\nRespuestas breves, precisas y profesionales.\n\n- Utiliza Gmail Tool exclusivamente cuando el usuario solicite recuperar correos o antecedentes de conversaciones anteriores.\n- Nunca utilices Gmail para responder preguntas generales, realizar cálculos o consultar tarifas.\n- No repitas una misma búsqueda si ya obtuviste resultados.\n- Si una herramienta no devuelve información útil, informa la limitación y continúa sin repetir la operación.",
+          "maxIterations": 8
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ce13462b-7c7a-44bc-a4bc-d5f9e0e6c965",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        160
+      ],
+      "id": "6d833dab-7c76-4515-b6ab-9b04012b6f52",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Busca correos existentes en Gmail únicamente cuando el usuario solicite expresamente recuperar un correo, una conversación anterior o un antecedente comercial. No utilices esta herramienta para consultas generales, cálculos, tarifas ni información que no requiera revisar correos. Realiza una sola búsqueda por solicitud y no repitas búsquedas sin una razón concreta.",
+        "operation": "getAll",
+        "limit": 5,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        224
+      ],
+      "id": "be0e7247-0d4b-4df6-b196-80000df51262",
+      "name": "Get many messages in Gmail",
+      "webhookId": "b20818ea-a62b-4438-9929-b8782a7002c3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UalKWwKqlff3Qp3p",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "matiasburdisso17@gmail.com",
+        "subject": "Reporte de ejecución - Agente La Fábrica",
+        "message": "= ={{   '<h2>Reporte de ejecución - La Fábrica</h2>' +   '<p><b>Consulta recibida:</b> ' +   $('When chat message received').item.json.chatInput +   '</p>' +   '<p><b>Respuesta del agente:</b> ' +   $json.output +   '</p>' +   '<p><b>Estado:</b> Ejecución completada.</p>' +   '<p><b>Registro:</b> Workflow de atención comercial.</p>' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "486e642b-0ed4-4803-9481-e834650e0e3b",
+      "name": "Send a message",
+      "webhookId": "51d4e94f-d2dc-46b7-8b9d-c790dc96b711",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UalKWwKqlff3Qp3p",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "18d126ed-b5e0-493e-bc12-64e29e5274fc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a3284c37e47b6066ac981aedd14a321afa0a629964d05f123d9084b74bc06baa"
+  },
+  "nodeGroups": [],
+  "id": "6FrLLS9hvBmNfpfy",
+  "tags": []
+}
